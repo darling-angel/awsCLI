@@ -1,0 +1,8 @@
+# To hibernate the instance, run the command:
+
+aws ec2 stop-instances --instance-ids <instance_id>
+
+
+# Run the following command to start the instance
+
+aws ec2 start-instances --instance-ids <instance_id>
