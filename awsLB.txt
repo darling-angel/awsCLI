@@ -1,0 +1,61 @@
+  
+  #use the create-load-balancer command to create a load balancer named whizlabs-LB (which includes two subnets in different availability zones, specifically us-east-1a and us-east-1b). Enter the following command into the terminal as shown below:
+
+  aws elbv2 create-load-balancer --name whizlabs-LB --subnets <Subnet Id of Instance 1> <Subnet Id of Instance 2> --security-groups <Security Group of loadbalancer_SG>  
+   • Example: aws elbv2 create-load-balancer --name whizlabs-LB --subnets subnet-09dcfc9d353ee9c5c subnet-067e6abb9582e5805 --security-groups sg-0ef883fe5d7d2575c 
+   • Example: aws elbv2 create-load-balancer --name whizlabs-LB --subnets subnet-09dcfc9d353ee9c5c subnet-067e6abb9582e5805 --security-groups sg-0ef883fe5d7d2575c
+
+#	Use the create-target-group command to create a target group named TG1, specify the load balancer's VPC ID
+  aws elbv2 create-target-group --name TG1 --protocol HTTP --port 80 --vpc-id <Load balancer VPC Id>
+  * Example: aws elbv2 create-target-group --name TG2 --protocol HTTP --port 80 --vpc-id vpc-0ec3696a4c41fed32
+  * Note: Replace the Load balancer VPC Id with your value.
+
+# Use register-targets command to register Instance1 with the Target Group TG1
+  aws elbv2 register-targets --target-group-arn <TG1 ARN> --targets Id=<Instance1 Id>
+  	• Example: aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:us-east-1:757712384777:targetgroup/TG1/f4619175d2877cd9 --targets Id=i-
+    * Note: Replace the TG1 ARN and INSTANCE1 ID with your values for each.
+
+# Similarly, use the register-targets command to register Instance2 with the Target Group TG2
+  aws elbv2 register-targets --target-group-arn <TG2 ARN> --targets Id=<Instance2 Id>
+ 	• Example: aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:us-east-1:757712384777:targetgroup/TG2/1dd2532226541d8c --targets Id=i-016edc45d166c9123
+    * Note: Replace the TG2 ARN and INSTANCE2 ID with your values for each
+
+#Use the create-listener command to create a listener default rule to forward the request to Target group TG1.
+  aws elbv2 create-listener --load-balancer-arn <Load Balancer ARN> --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=<TG1 ARN>
+    * Example: aws elbv2 create-listener --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:757712384777:loadbalancer/app/whizlabs-LB/c70ba276f3e59d69 --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:757712384777:targetgroup/TG1/f4619175d2877cd9
+    * Note: Replace the Load Balancer ARN and TG1 ARN with your values for each
+
+#Use the create-listener command along with the Load Balancer listeners ARN to create a listener rule1 to forward the request to TG1 if its URL has images in its path
+  aws elbv2 create-rule --listener-arn <LB Listeners ARN> --priority 10 --conditions Field=path-pattern,Values='/images/*' --actions Type=forward,TargetGroupArn=<TG1 ARN>
+  	• Example: aws elbv2 create-rule --listener-arn arn:aws:elasticloadbalancing:us-east-1:757712384777:listener/app/whizlabs-LB/c70ba276f3e59d69/12d71a05863d10c1 --priority 10 --conditions Field=path-pattern,Values='/images/*' --actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:757712384777:targetgroup/TG1/f4619175d2877cd9
+    * Note: Replace the LB Listeners ARN and TG1 ARN  with your values for each.
+
+#Use the Create-listener command along with the Load Balancer listener ARN to create a listener rule to forward the request to TG2 if its URL has work in its path. Also kindly make sure the priority for this rule is different from the previous rule we created. 
+  aws elbv2 create-rule --listener-arn <LB Listeners ARN> --priority 5 --conditions Field=path-pattern,Values='/work/*' --actions Type=forward,TargetGroupArn=<TG2 ARN>
+  	• Example: aws elbv2 create-rule --listener-arn arn:aws:elasticloadbalancing:us-east-1:757712384777:listener/app/whizlabs-LB/c70ba276f3e59d69/12d71a05863d10c1 --priority 5 --conditions Field=path-pattern,Values='/work/*' --actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:757712384777:targetgroup/TG2/1dd2532226541d8c
+    * Note: Replace the LB Listeners ARN and TG2 ARN  with your values for each.
+
+#Use the describe-target-health command to verify the health status of the Target Group TG1.
+  aws elbv2 describe-target-health --target-group-arn <TG1 ARN>
+   * Example: aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing:us-east-1:757712384777:targetgroup/TG1/f4619175d2877cd9
+   * NOTE: Replace the TG1 ARN with your value
+
+#Similarly, use the describe-target-health command to verify the health status of the Target Group TG2
+  aws elbv2 describe-target-health --target-group-arn <TG2 ARN>
+  * Example: aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing:us-east-1:757712384777:targetgroup/TG2/1dd2532226541d8c
+  * NOTE: Replace the TG2 ARN with your value.
+    
+    
+My examples:    
+  
+    1  aws configure
+    2  aws elbv2 create-load-balancer --name whizlabs-LB --subnets subnet-0046d080d78e48f3f subnet-0e6ca738c280445fa --security-groups sg-0dadb3735f94163fb
+    3  aws elbv2 create-target-group --name TG1 --protocol HTTP --port 80 --vpc-id vpc-0469ca8597dd20275
+    4  aws elbv2 create-target-group --name TG2 --protocol HTTP --port 80 --vpc-id vpc-0469ca8597dd20275
+    5  aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:us-east-1:072274026480:targetgroup/TG1/568ad7622fbbd668 --targets Id=i-0c7ebec60ac85e230
+    6  aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:us-east-1:072274026480:targetgroup/TG2/afe47b8f7eb0118a --targets Id=i-099be56995376dfe9
+    7  aws elbv2 create-listener --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:072274026480:loadbalancer/app/whizlabs-LB/c6d5c0e1e8af628f --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:072274026480:targetgroup/TG1/568ad7622fbbd668
+    8  aws elbv2 create-rule --listener-arn arn:aws:elasticloadbalancing:us-east-1:072274026480:listener/app/whizlabs-LB/c6d5c0e1e8af628f/f94c04276b22118d --priority 10 --conditions Field=path-pattern,Values='/images/*' --actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:072274026480:targetgroup/TG1/568ad7622fbbd668
+    9  aws elbv2 create-rule --listener-arn arn:aws:elasticloadbalancing:us-east-1:072274026480:listener/app/whizlabs-LB/c6d5c0e1e8af628f/f94c04276b22118d --priority 5 --conditions Field=path-pattern,Values='/work/*' --actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:072274026480:targetgroup/TG2/afe47b8f7eb0118a
+   10  aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing:us-east-1:072274026480:targetgroup/TG1/568ad7622fbbd668
+   11  aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing:us-east-1:072274026480:targetgroup/TG2/afe47b8f7eb0118a
